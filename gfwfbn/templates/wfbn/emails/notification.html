@@ -1,0 +1,33 @@
+{% extends "admin/emails/page.html" %}
+{% load humanize %}
+
+{% block body %}
+
+    <p>We've found a new list of items requested by <a href="https://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/?utm_source=notificationemail&utm_medium=email&utm_campaign={{ need.foodbank_name_slug }}-{{ need.created|date:"Y-m-d" }}">{{ need.foodbank.name }} Food Bank</a>. They are...</p>
+
+    {{ need.change_text|linebreaks }}
+
+    {% if need.excess_change_text %}
+        <p>{{ need.foodbank.full_name }} currently doesn't need anymore of these items: {% for item in need.excess_list %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+    {% endif %}
+
+    {% if need.foodbank.articles_month %}
+        <b>News from {{ need.foodbank.name }} Food Bank</b><br>
+        {% for article in need.foodbank.articles_month %}
+            <a href="{{ article.url_with_ref }}">{{ article.title_captialised }}</a><br><span class="articledate">{{ article.published_date }}</span>
+            <br>
+        {% endfor %}
+        <br>
+    {% endif %}
+
+    <p>You can find more details at <a href="https://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/?utm_source=notificationemail&utm_medium=email&utm_campaign={{ need.foodbank_name_slug }}-{{ need.created|date:"Y-m-d" }}">https://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/</a></p>
+
+    {% if need.foodbank.no_donation_points != 0 %}
+        <p>🛒 Find <a href="https://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/donationpoints/?utm_source=notificationemail&utm_medium=email&utm_campaign={{ need.foodbank_name_slug }}-{{ need.created|date:"Y-m-d" }}">donation points</a></p>
+    {% endif %}
+    <p>🗺️ See other <a href="https://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/nearby/?utm_source=notificationemail&utm_medium=email&utm_campaign={{ need.foodbank_name_slug }}-{{ need.created|date:"Y-m-d" }}">nearby food banks</a></p>
+
+    <p>You're getting these emails because you subscribed to them at <a href="https://www.givefood.org.uk/?utm_source=notificationemail&utm_medium=email&utm_campaign={{ need.foodbank_name_slug }}-{{ need.created|date:"Y-m-d" }}">givefood.org.uk</a> on {{ subscriber.created|date:"jS F Y" }} at {{ subscriber.created|date:"g:i a" }} You can unsubscribe by <a href="http://www.givefood.org.uk/needs/at/{{ need.foodbank.slug }}/updates/unsubscribe/?key={{ subscriber.unsub_key }}">clicking here</a>.</p>
+    
+    
+{% endblock %}

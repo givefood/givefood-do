@@ -1,0 +1,174 @@
+{% extends "admin/page.html" %}
+
+{% block title %}{{ need }} - GF Admin{% endblock %}
+
+{% block body %}
+
+
+  <div class="columns">
+
+    <div class="column">
+      <dl>
+        <dt>ID</dt>
+        <dd>{{ need.need_id }}</dd>
+        <dt>Food Bank</dt>
+        <dd>
+          {% if need.foodbank %}
+            <a href="{% url 'admin:foodbank' need.foodbank.slug %}">{{ need.foodbank }}</a>
+          {% else %}
+            Unknown
+          {% endif %}
+        </dd>
+        <dt>Input Method</dt>
+        <dd>
+          {{ need.input_method_emoji }}
+        </dd>
+        <dt>Created</dt>
+        <dd><time datetime="{{ need.created|date:'c' }}" title="{{ need.created }}">{{ need.created|timesince }} ago</time></dd>
+        <dt>Modified</dt>
+        <dd><time datetime="{{ need.modified|date:'c' }}" title="{{ need.modified }}">{{ need.modified|timesince }} ago</time></dd>
+        {% if need.foodbank %}
+          <dt>Prev. Need</dt>
+          <dd>
+            {% if need.diff_from_last %}
+              <time datetime="{{ need.last_need_date|date:'c' }}" title="{{ need.last_need_date }}">{{ need.last_need_date|timesince }} ago</time>
+            {% else %}
+              Never
+            {% endif %}
+          </dd>
+        {% endif %}
+        {% if need.uri %}
+          <dt>URL</dt>
+          <dd><a href="{{ need.uri }}">{{ need.uri|truncatechars:35 }}</a></dd>
+        {% endif %}
+        <dt>Food Bank Subs</dt>
+        <dd>{{ need.foodbank.number_subscribers }}</dd>
+      </dl>
+
+      <h3>Workflow</h3>
+      <table class="table is-fullwidth">
+        <tr>
+          <td>
+            {% if need.published %}
+              <span style="color:green">✓</span>
+            {% else %}
+              <span style="color:red">x</span>
+            {% endif %}
+          </td>
+          <td>Publish</td>
+          <td>
+            <a href="{% url "admin:need_form" need.need_id %}" class="button is-link is-pulled-right is-small">Edit</a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            {% if need.is_categorised %}
+              <span style="color:green">✓</span>
+            {% else %}
+              <span style="color:red">x</span>
+            {% endif %}
+          </td>
+          <td>Categorise</td>
+          <td>
+            {% if need.published %}
+              <a href="{% url 'admin:need_categorise' need.need_id %}" class="button is-link is-pulled-right is-small">Categorise</a>
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <td>
+            {% if need.tweet_sent %}
+              <span style="color:green">✓</span>
+            {% else %}
+              <span style="color:red">x</span>
+            {% endif %}
+          </td>
+          <td>Notify</td>
+          <td>
+            {% if need.published %}
+              <form action="{% url 'admin:need_notifications' need.need_id %}" method="post">
+                <input type="submit" class="button is-warning is-pulled-right is-small" value="Send" onclick="this.form.submit();this.disabled = true;">
+                {% csrf_token %}
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+      
+      <h3>Notification Preview</h3>
+      <ul>
+        <li><a href="{% url 'admin:need_email' need.need_id %}?format=html" data-turbo="false">HTML</a></li>
+        <li><a href="{% url 'admin:need_email' need.need_id %}?format=txt" data-turbo="false">TXT</a></li>
+      </ul>
+
+      <h3>⚠️ Danger Zone</h3>
+      <form action="{% url 'admin:need_delete' need.need_id %}" method="post">
+        <input type="submit" class="button is-danger" value="Delete" onclick="return confirm('Are you sure you want to DELETE?')">
+        {% csrf_token %}
+      </form>
+
+    </div>
+
+    <div class="column">
+      
+      <h2>Shopping List</h2>
+      <div class="box">
+        <p>{{ need.change_text|linebreaksbr }}</p>
+      </div>
+
+      {% if need.diff_from_last %}
+        <h3>Previous Need</h3>
+        <div class="box">
+          <p>{{ need.diff_from_last|safe|linebreaksbr }}</p>
+        </div>
+        {{ need.last_need_date }} ({{ need.last_need_date|timesince:need.created }} before)
+      {% else %}
+        {% if need.last_need_date %}
+          No change from need found {{ need.last_need_date }} ({{ need.last_need_date|timesince:need.created }} before)<br><br>
+        {% endif %}
+      {% endif %}
+
+      {% if need.change_text_original %}
+        <h3>Original Text</h3>
+        <div class="box">
+          <p>{{ need.change_text_original|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+
+    </div>
+
+    {% if need.excess_change_text %}
+
+      <div class="column">
+        
+        <h2>Excess</h2>
+        <div class="box">
+          <p>{{ need.excess_change_text|linebreaksbr }}</p>
+        </div>
+
+        {% if need.diff_from_last_excess %}
+          <h3>Previous Excess</h3>
+          <div class="box">
+            <p>{{ need.diff_from_last_excess|safe|linebreaksbr }}</p>
+          </div>
+          {{ need.last_need_date }} ({{ need.last_need_date|timesince:need.created }} before)
+        {% else %}
+          {% if need.last_need_date %}
+            No change from excess found {{ need.last_need_date }} ({{ need.last_need_date|timesince:need.created }} before)<br><br>
+          {% endif %}
+        {% endif %}
+
+      </div>
+
+    {% endif %}
+
+    {% if need.uri %}
+      <div class="column">
+        <h2>Source</h2>
+        <iframe class="preview-frame" src="{% url 'admin:proxy' %}?url={{ need.uri|urlencode }}"></iframe>
+      </div>
+    {% endif %}
+
+  </div>
+
+{% endblock %}

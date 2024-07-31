@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /needs/getlocation/
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: *
+Allow: /
+
+
+Sitemap: https://www.givefood.org.uk/sitemap.xml

@@ -1,0 +1,21 @@
+cron:
+
+- description: crawl foodbank articles
+  url: /offline/crawl_articles/
+  schedule: every 2 hours
+
+- description: cleanup unconfirmed subscriptions
+  url: /offline/cleanup_subs/
+  schedule: every 48 hours
+
+- description: calculate days between needs per food bank
+  url: /offline/days_between_needs/
+  schedule: every monday 03:00
+
+# - description: discrepancy check
+#   url: /offline/discrepancy_check/
+#   schedule: every 5 minutes
+
+# - description: resaver
+#   url: /offline/resaver/
+#   schedule: every 48 hours

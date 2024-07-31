@@ -1,0 +1,132 @@
+{% extends "admin/page.html" %}
+{% load humanize %}
+{% load product_image %}
+
+{% block title %}{{ order.order_id }} - GF Admin{% endblock %}
+
+{% block body %}
+
+  <div class="columns">
+
+    <div class="column is-two-fifths">
+
+      <a href="{% url 'admin:order_edit' order.order_id %}" class="button is-link is-pulled-right">Edit</a>
+
+      <dl>
+        <dt>ID</dt>
+        <dd>{{ order.order_id }}
+        <dt>Foodbank</dt>
+        <dd><a href="{% url "admin:foodbank" order.foodbank.slug %}">{{ order.foodbank }}</a></dd>
+        <dt>Delivery hour</dt>
+        <dd>{{ order.delivery_date|date:"D" }}, {{ order.delivery_date }}, {{ order.delivery_hour }}:00</dd>
+        <dt>Items</dt>
+        <dd>{{ order.no_items }}</dd>
+        <dt>Lines</dt>
+        <dd>{{ order.no_lines }}</dd>
+        <dt>Weight</dt>
+        <dd>{{ order.weight_kg|intcomma|floatformat:2 }} kg</dd>
+        <dt>Total weight (pkging)</dt>
+        <dd>{{ order.weight_kg_pkg|intcomma|floatformat:2 }} kg</dd>
+        <dt>Calories</dt>
+        <dd>{{ order.calories|intcomma }}</dd>
+
+        <dt>Cost</dt>
+        <dd>£{{ order.natural_cost }}</dd>
+        {% if order.actual_cost %}
+          <dt>Delivered cost</dt>
+          <dd>£{{ order.natural_actual_cost }}</dd>
+        {% endif %}
+
+        {% if order.order_group %}
+          <dt>Order group</dt>
+          <dd><a href="{% url 'admin:order_group' order.order_group.slug %}">{{ order.order_group }}</a></dd>
+        {% endif %}
+        {% if order.source_url %}
+          <dt>Source URL</dt>
+          <dd><a href="{{ order.source_url }}">{{ order.source_url|truncatechars:35 }}</a></dd>
+        {% endif %}
+        <dt>
+        {% if order.delivery_provider and order.delivery_provider_id %}
+          <dt>Delivery</dt>
+          <dd>
+            <a href="{% if order.delivery_provider == "Tesco" %}https://www.tesco.com/groceries/en-GB/orders/{{ order.delivery_provider_id }}{% endif %}{% if order.delivery_provider == "Sainsbury's" %}https://www.sainsburys.co.uk/gol-ui/my-account/orders/{{ order.delivery_provider_id }}{% endif %}">
+              {{ order.delivery_provider }}
+            </a>
+          </dd>
+        {% endif %}
+        {% if order.delivery_provider_id %}
+          <dt>Del. Prov. ID</dt>
+          <dd>{{ order.delivery_provider_id }} </dd>
+        {% endif %}
+        <dt>Created</dt>
+        <dd>{{ order.created }}</dd>
+        <dt>Modified</dt>
+        <dd>{{ order.modified }}</dd>
+      </dl>
+
+      <br>
+
+      {% if order.need %}
+        <h2>Need <a href="{% url "admin:need" order.need.need_id %}">{{ order.need.need_id }}</a></h2>
+        <p>{{ order.need.change_text|linebreaksbr }}</p>
+        <dl>
+          <dt>Found</dt>
+          <dd>{{ order.need.created }}</dd>
+          {% if order.need.uri %}
+            <dt>URL</dt>
+            <dd><a href="{{ order.need.uri }}">{{ order.need.uri|truncatechars:40 }}</a></dd>
+          {% endif %}
+        </dl>
+      {% endif %}
+
+      <h2>Notification</h2>
+      <p>
+        {% if order.notification_email_sent %}
+          <span style="color:green">✓</span> Sent <time datetime="{{ order.notification_email_sent|date:'c' }}" title="{{ order.notification_email_sent }}">{{ order.notification_email_sent|timesince }} ago</time>
+        {% else %}
+          <span style="color:red">x</span> Not Sent
+        {% endif %}
+      </p>
+      <form action="{% url 'admin:order_send_notification' order.order_id %}" method="post">
+        <input type="submit" class="button is-warning" value="Send Notification">
+        {% csrf_token %}
+      </form>
+
+      <h2>Danger Zone</h2>
+      <form action="{% url 'admin:order_delete' order.order_id %}" method="post">
+        <input type="submit" class="button is-danger" value="Cancel" onclick="return confirm('Are you sure you want to cancel?')">
+        {% csrf_token %}
+      </form>
+
+    </div>
+
+    <div class="column">
+
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Name</th>
+          <th>Quantity</th>
+          <th>Weight</th>
+          <th>Calories</th>
+        </tr>
+        {% for line in order.lines %}
+          <tr>
+            <td>{{ line.name }}</td>
+            <td>{{ line.quantity }}</td>
+            <td>{{ line.weight|intcomma }}g</td>
+            <td>
+              {{ line.calories|intcomma }}
+              {% if line.calories == 0 %}
+                <form action="{% url 'admin:item_new' %}" method="post" style="display:inline" target="_blank">
+                  <input type="hidden" name="name" value="{{ line.name }}">
+                  <input type="submit" class="button is-small" value="Add">
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+
+{% endblock %}

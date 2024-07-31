@@ -1,0 +1,143 @@
+{% extends "public/page.html" %}
+{% load custom_tags %}
+
+{% block head %}
+  <link rel="stylesheet" href="/static/css/wfbn.css?v={{ version }}">
+  <link rel="alternate" type="application/rss+xml" title="RSS feed for {{ foodbank.full_name }}" href="{% url 'wfbn:foodbank_rss' foodbank.slug %}">
+  <link rel="alternate" type="application/json" href="{% url 'api2:foodbank' foodbank.slug %}">
+  <link rel="alternate" type="application/xml" href="{% url 'api2:foodbank' foodbank.slug %}?format=xml">
+  <link rel="alternate" type="application/yaml" href="{% url 'api2:foodbank' foodbank.slug %}?format=yaml">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@GiveFoodCharity">
+  <meta property="og:title" content="{{ foodbank.full_name }}">
+  <meta property="og:description" content="Find what {{ foodbank.full_name }} is requesting to have donated">
+  <meta name="description" content="Find what {{ foodbank.full_name }} is requesting to have donated">
+  <meta property="og:image" content="https://www.givefood.org.uk{% url 'wfbn:foodbank_map' foodbank.slug %}">
+  <meta property="og:image:alt" content="Map of {{ foodbank.full_name }}">
+  <link rel="manifest" href="/needs/manifest.json">
+  <meta name="geo.placename" content="{{ foodbank.full_name }}">
+  <meta name="geo.position" content="{{ foodbank.latt_long }}">
+  <meta property="place:location:latitude" content="{{ foodbank.latt }}">
+  <meta property="place:location:longitude" content="{{ foodbank.long }}">
+  <link rel="preload" href="{% url 'wfbn:foodbank_geojson' foodbank.slug %}" as="fetch">
+  {% if foodbank.is_closed %}
+    <meta name="robots" content="noindex">
+  {% endif %}
+  <script type="application/ld+json">
+    {{ foodbank.schema_org_str|safe }}
+  </script>
+{% endblock %}
+
+{% block title %}{{ foodbank.full_name }} - Give Food{% endblock %}
+
+{% block body %}
+
+  <div class="columns">
+    <div class="column">
+
+      <div class="columns">
+        <div class="column is-4">
+          <a href="{% url 'index' %}" class="logo"><img src="/static/img/logo.svg" alt="Give Food"></a>
+        </div>
+      </div>
+
+      <nav class="breadcrumb has-arrow-separator" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li><a href="{% url 'wfbn:index' %}">What Food Banks Need</a></li>
+                <li class="is-active"><a href="#" aria-current="page">{{ foodbank.full_name }}</a></li>
+            </ul>
+      </nav>
+
+      <h1>{{ foodbank.full_name }}</h1>
+
+      <div class="columns">
+
+          <div class="column is-2 menu-col">
+            {% include "wfbn/foodbank/includes/menu.html" %}
+          </div>
+
+          <div class="column">
+
+            {% if foodbank.is_closed %}
+              <p class="tag is-danger is-large">This food bank is closed</p>
+            {% endif %}
+
+              {% if foodbank.latest_need.change_text == "Facebook" %}
+                <p>You can find out what {{ foodbank.full_name }} is requesting to have donated on their Facebook page:</p>
+                {% include 'wfbn/includes/facebook_embed.html' with page_name=foodbank.facebook_page %}
+              {% else %}
+                <p>{{ foodbank.full_name }} is currently requesting the following items to be donated:</p>
+                <p class="needs">
+                  {% include "wfbn/includes/need_text.html" with need_text=foodbank.latest_need.change_text  %}
+                </p>
+                {% if foodbank.latest_need.excess_change_text %}
+                  <p>They don't need anymore {% for item in foodbank.latest_need.excess_list %}{{ item }}{% if not forloop.last %}, {% endif %}{% endfor %}.</p>
+                {% endif %}
+                
+                {% include 'wfbn/foodbank/includes/subscribe.html' %}
+              {% endif %}
+
+          </div>
+
+          <div class="column">
+
+            {% include "wfbn/foodbank/includes/ctas.html" %}
+
+            <div id="map" class="sidemap"></div>
+            {% include "wfbn/foodbank/includes/maplegend.html" %}
+
+            {% if foodbank.address_is_administrative%}
+              <h3>Administrative address</h3>
+            {% else %}
+              <a href="https://www.google.com/maps?saddr=My+Location&daddr={{ foodbank.latt_long }}" class="is-pulled-right button is-info is-small is-light directions-btn">Directions</a>
+            {% endif %}
+            <address>
+              {{ foodbank.address|linebreaksbr }}<br>
+              {{ foodbank.postcode }}<br>
+              {{ foodbank.country }}
+            </address>
+            <div class="pluscode">
+              <img src="/static/img/pluscode.svg" alt="Plus Code" class="contact-icon"> <a href="https://www.google.co.uk/maps/place/{{ foodbank.plus_code_global|urlencode }}/">{{ foodbank.plus_code_global }}</a>
+            </div>
+
+            {% if foodbank.delivery_address %}
+              <h3>Delivery address</h3>
+              <a href="https://www.google.com/maps?saddr=My+Location&daddr={{ foodbank.delivery_latt_long }}" class="is-pulled-right button is-info is-small is-light directions-btn">Directions</a>
+              <address>
+                {{ foodbank.delivery_address|linebreaksbr }}
+              </address>
+            {% endif %}
+
+            <div class="contacts is-size-6">
+              <img src="/static/img/web.svg" alt="Website" class="contact-icon"> <a href="{{ foodbank.url_with_ref }}" id="website_link">{{ foodbank.friendly_url|truncatechars:40 }}</a><br>
+              {% if foodbank.phone_number %}
+                <img src="/static/img/phone.svg" alt="Phone" class="contact-icon"> <a href="tel:{{ foodbank.phone_number|full_phone }}">{{ foodbank.phone_number|friendly_phone }}</a>{% if foodbank.secondary_phone_number %} or <a href="tel:{{ foodbank.secondary_phone_number|full_phone }}">{{ foodbank.secondary_phone_number|friendly_phone }}</a>{% endif %}<br>
+              {% endif %}
+              <img src="/static/img/email.svg" alt="Email" class="contact-icon"> <a href="mailto:{{ foodbank.contact_email }}" id="email_link">{{ foodbank.contact_email|truncatechars:40 }}</a>
+            </div>
+
+            {% include "wfbn/foodbank/includes/charitynetwork.html" %}
+
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block script %}
+<script>
+  var gf_map_config = {
+    geojson: "{% url 'wfbn:foodbank_geojson' foodbank.slug %}",   
+    max_zoom: 14,
+  }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ gmap_key }}" defer></script>
+<script src="/static/js/wfbn.js?v={{ version }}" defer></script>
+<script src="/static/js/wfbn_map.js?v={{ version }}" defer></script>
+<script src="{% url 'wfbn:foodbank_hit' foodbank.slug %}" defer></script>
+{% endblock %}
+

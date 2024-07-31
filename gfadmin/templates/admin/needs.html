@@ -1,0 +1,62 @@
+{% extends "admin/page.html" %}
+{% load humanize %}
+
+{% block title %}Needs - GF Admin{% endblock %}
+
+{% block body %}
+
+  <h2>Needs</h2>
+
+  <div class="columns">
+
+    <div class="column">
+
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Published?</th>
+          <th>Input</th>
+          <th>Cat?</th>
+          <th>ID</th>
+          <th>Foodbank</th>
+          <th>Need</th>
+          <th>Excess</th>
+          <th>Created</th>
+          <th>Modified</th>
+        </tr>
+        {% for need in needs %}
+          <tr>
+            <td>
+              {% if need.published %}
+                <span style="color:green">✓</span>
+              {% else %}
+                <span style="color:red">x</span>
+              {% endif %}
+            </td>
+            <td>
+              {{ need.input_method_emoji }}
+            </td>
+            <td>
+              {% if need.is_categorised %}🪣{% endif %}
+              {% if uncategorised %}
+                <a href="{% url 'admin:need_categorise' need.need_id %}" class="button is-link is-pulled-right is-small">Categorise</a>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url "admin:need" need.need_id %}">{{ need.need_id }}</a>
+            </td>
+            <td>
+              <a href="{% url "admin:foodbank" need.foodbank_name_slug %}">{{ need.foodbank_name }}</a>
+            </td>
+            <td class="is-size-7">{{ need.change_text|linebreaksbr }}</td>
+            <td class="is-size-7">{{ need.excess_change_text|linebreaksbr }}</td>
+            <td>{{ need.created }}</td>
+            <td>{{ need.modified }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+  </div>
+
+{% endblock %}

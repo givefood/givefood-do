@@ -1,0 +1,54 @@
+{% extends "admin/page.html" %}
+
+{% block title %}Subscriptions - GF Admin{% endblock %}
+
+{% block body %}
+
+  <h2>Subscriptions</h2>
+
+  <div class="columns">
+
+    <div class="column">
+
+      <div class="field is-pulled-right">
+        <div class="control">
+          <div class="select is-small">
+            <select onchange="javascript:window.location.href=this.value">
+              <option value="?filter=all"{% if filter == "all" %} selected{% endif %}>All</option>
+              <option value="?filter=unconfirmed"{% if filter == "unconfirmed" %} selected{% endif %}>Unconfirmed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Email</th>
+          <th>Foodbank</th>
+          <th>Created</th>
+          <th>Confirmed</th>
+          <th></th>
+        </tr>
+        {% for subscription in subscriptions %}
+          <tr>
+            <td>{{ subscription.email }}</td>
+            <td><a href="{% url 'admin:foodbank' subscription.foodbank_slug %}">{{ subscription.foodbank_name }}</a></td>
+            <td>{{ subscription.created }}</td>
+            <td>{% if subscription.confirmed %}Y{% else %}N{% endif %}</td>
+            <td>
+              <form action="{% url 'admin:delete_subscription' %}" method="post">
+                <input type="hidden" name="email" value="{{ subscription.email }}">
+                <input type="hidden" name="foodbank" value="{{ subscription.foodbank_name|slugify }}">
+                <input type="submit" value="Delete" onclick="return confirm('Delete {{ subscription.email }}?')" class="button is-danger is-small">
+                {% csrf_token %}
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+  </div>
+
+{% endblock %}

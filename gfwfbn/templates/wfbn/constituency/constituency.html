@@ -1,0 +1,119 @@
+{% extends "public/page.html" %}
+
+{% block head %}
+  <link rel="stylesheet" href="/static/css/wfbn.css?v={{ version }}">
+  <link rel="alternate" type="application/json" href="{% url 'api2:constituency' constituency.slug %}">
+  <link rel="alternate" type="application/xml" href="{% url 'api2:constituency' constituency.slug %}?format=xml">
+  <link rel="alternate" type="application/yaml" href="{% url 'api2:constituency' constituency.slug %}?format=yaml">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@GiveFoodCharity">
+  <meta property="og:title" content="Food Banks In {{ constituency.name }}">
+  <link rel="manifest" href="/needs/manifest.json">
+  <meta name="description" content="Find out what food banks operate in {{ constituency.name }}, what they are requesting and take action.">
+  <meta property="og:image" content="{{ constituency.mp_photo_url }}">
+  <meta property="og:image:alt" content="{{ constituency.mp }}">
+  <meta name="geo.placename" content="{{ constituency.name }}">
+  <meta name="geo.position" content="{{ constituency.centroid }}">
+  <meta property="place:location:latitude" content="{{ constituency.latt }}">
+  <meta property="place:location:longitude" content="{{ constituency.long }}">
+  <script type="application/ld+json">
+    {{ constituency.schema_org_str|safe }}
+  </script>
+{% endblock %}
+
+{% block title %}Food banks in {{ constituency }} - Give Food{% endblock %}
+
+{% block body %}
+
+  <div class="columns">
+    <div class="column">
+
+      <div class="columns">
+
+        <div class="column is-4">
+          <a href="{% url 'index' %}" class="logo"><img src="/static/img/logo.svg" alt="Give Food"></a>
+        </div>
+
+      </div>
+
+      <nav class="breadcrumb has-arrow-separator" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li><a href="{% url 'wfbn:index' %}">What Food Banks Need</a></li>
+                <li><a href="{% url 'wfbn:constituencies' %}">Constituencies</a></li>
+                <li class="is-active"><a href="#" aria-current="page">{{ constituency }}</a></li>
+            </ul>
+      </nav>
+
+      <h1>Food banks in {{ constituency }}</h1>
+
+      <div class="columns">
+
+          <div class="column">
+            <img src="{{ constituency.mp_photo_url }}" alt="{{ constituency.mp }}" class="mp_photo">
+          </div>
+
+          <div class="column is-6">
+            {% if enable_write %}
+              <p>{{ constituency.name }} constituency is represented by <a href="https://www.google.co.uk/search?q={{ constituency.mp|urlencode }}%20MP">{{ constituency.mp }} MP</a>
+                {% if constituency.mp_party == "Speaker" %}
+                  who is the Speaker of the House of Commons.
+                {% else %}
+                  of the {{ constituency.mp_party }} party.
+                {% endif %}
+              </p>
+              <a href="{% url 'write:index' %}" class="button is-link">Write</a><br><br>
+            {% endif %}
+
+            <p>The following food banks operate in the {{ constituency.name }} constituency. Here is what they are requesting to have donated.</p>
+            <table class="table is-narrow is-fullwidth">
+              {% for foodbank in constituency.foodbanks %}
+                <tr>
+                  <td class="foodbank_name">
+                    <a href="{{ foodbank.gf_url }}">{{ foodbank.name }}</a>
+                    {% if foodbank.type == "location" %}
+                      <div class="parent_org">Part of <a href="/needs/at/{{ foodbank.foodbank_name|slugify }}/">{{ foodbank.foodbank_name }}</a></div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% include "wfbn/includes/need_text.html" with need_text=foodbank.needs.change_text %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </table><br>
+          </div>
+
+          <div class="column is-4">
+            
+            <div id="map" class="sidemap"></div>
+            {% include "wfbn/foodbank/includes/maplegend.html" %}
+
+            <h2>Nearby Constituencies</h2>
+            <ul>
+              {% for nearby_constituency in constituency.nearby %}
+                <li><a href="{% url 'wfbn:constituency' nearby_constituency.slug %}">{{ nearby_constituency }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+  var gf_map_config = {
+    geojson: "{% url 'wfbn:constituency_geojson' constituency.slug %}",
+    max_zoom: 14,
+  }
+</script>
+
+<script src="/static/js/wfbn.js?v={{ version }}" defer></script>
+<script src="/static/js/wfbn_map.js?v={{ version }}" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ gmap_key }}&libraries=places"></script>
+
+{% endblock %}
+

@@ -1,0 +1,461 @@
+{% extends "admin/page.html" %}
+{% load humanize %}
+
+{% block title %}{{ foodbank }} - GF Admin{% endblock %}
+
+{% block body %}
+
+  <h1>{{ foodbank }}</h1>
+
+  <div class="tabs is-boxed">
+    <ul>
+      <li class="is-active">
+        <a data-tab="generallocations">
+          <span>General &amp; Locations <span class="tag is-info is-normal is-light">{{ counts.locations }}</span></span>
+        </a>
+      </li>
+      <li>
+        <a data-tab="needsorders">
+          <span>Needs <span class="tag is-info is-normal is-light">{{ counts.needs }}</span> &amp; Orders <span class="tag is-info is-normal is-light">{{ counts.orders }}</span></span>
+        </a>
+      </li>
+      <li>
+        <a data-tab="donationpoints">
+          <span>Donation Points <span class="tag is-info is-normal is-light">{{ counts.donation_points }}</span></span>
+        </a>
+      </li>
+      {% if foodbank.articles %}
+        <li>
+          <a data-tab="articles">
+            <span>Articles <span class="tag is-info is-normal is-light">{{ counts.articles }}</span></span>
+          </a>
+        </li>
+      {% endif %}
+      {% if foodbank.facebook_page or foodbank.twitter_handle %}
+        <li>
+          <a data-tab="socialmedia">
+            <span>Social Media</span>
+          </a>
+        </li>
+      {% endif %}
+      <li>
+        <a data-tab="subscribers">
+          <span>Subscribers <span class="tag is-info is-normal is-light">{{ counts.subscribers }}</span></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="columns sections">
+
+    {# General #}
+    <div class="column generallocations">
+
+      {% if foodbank.is_closed %}
+        <span class="tag is-danger">Closed</span>
+      {% endif %}
+
+      <a href="{% url 'admin:foodbank_edit' foodbank.slug %}" class="button is-link">Edit Food Bank</a><br>
+
+      {% if not foodbank.orders %}
+        <a href="{% url 'admin:neworder' %}?foodbank={{ foodbank.slug }}" class="button is-link" style="margin-top:10px">New Order</a>
+      {% endif %}
+
+      {% if not foodbank.needs %}
+        <a href="{% url 'admin:newneed' %}?foodbank={{ foodbank.slug }}" class="button is-link" style="margin-top:10px">New Need</a>
+      {% endif %}
+
+      {% if foodbank.notes %}
+        <p class="box" style="margin-top:20px;">{{ foodbank.notes|linebreaksbr }}</p>
+      {% endif %}
+
+      <h3>Links</h3>
+      <dl>
+        <dt>GF Info</dt>
+        <dd><a href="{% url 'wfbn:foodbank' foodbank.slug %}" data-turbo="false">{{ foodbank.slug }}</a></dd>
+        <dt>Website</dt>
+        <dd><a href="{{ foodbank.url }}">{{ foodbank.friendly_url }}</a></dd>
+        <dt>Shopping list</dt>
+        <dd><a href="{{ foodbank.shopping_list_url }}">{{ foodbank.friendly_shopping_list_url }}</a></dd>
+        {% if foodbank.rss_url %}
+          <dt>RSS</dt>
+          <dd><a href="{{ foodbank.rss_url }}">RSS</a></dd>
+        {% endif %}
+        {% if foodbank.facebook_page %}
+          <dt>Facebook</dt>
+          <dd><a href="https://www.facebook.com/{{ foodbank.facebook_page }}">{{ foodbank.facebook_page }}</a></dd>
+        {% endif %}
+        {% if foodbank.twitter_handle %}
+          <dt>Twitter</dt>
+          <dd><a href="https://twitter.com/{{ foodbank.twitter_handle }}">@{{ foodbank.twitter_handle }}</a></dd>
+        {% endif %}
+        {% if foodbank.bankuet_slug %}
+          <dt>Bankuet</dt>
+          <dd><a href="https://www.bankuet.co.uk/{{ foodbank.bankuet_slug }}/">{{ foodbank.bankuet_slug }}</a></dd>
+        {% endif %}
+        {% if foodbank.charity_register_url %}
+          <dt>Charity register</dt>
+          <dd><a href="{{ foodbank.charity_register_url }}">{{ foodbank.charity_number }}</a></dd>
+          {% if foodbank.charity_just_foodbank %}
+            <dt>Charity just food bank</dt>
+            <dd>✅ Yes</dd>
+          {% endif %}
+        {% endif %}
+        <dt>Network</dt>
+        <dd>{{ foodbank.network }}</dd>
+      </dl>
+
+      <h3>Contacts</h3>
+      <dl>
+        <dt>Email</dt>
+        <dd><a href="mailto:{{ foodbank.contact_email }}">{{ foodbank.contact_email }}</a></dd>
+        {% if foodbank.notification_email %}
+          <dt>Delivery Email</dt>
+          <dd><a href="mailto:{{ foodbank.notification_email }}">{{ foodbank.notification_email }}</a></dd>
+        {% endif %}
+        {% if foodbank.phone_number %}
+          <dt>Phone</dt>
+          <dd><a href="call:{{ foodbank.phone_number }}">{{ foodbank.phone_number }}</a></dd>
+        {% endif %}
+        {% if foodbank.secondary_phone_number %}
+          <dt>Secondary phone</dt>
+          <dd><a href="call:{{ foodbank.secondary_phone_number }}">{{ foodbank.secondary_phone_number }}</a></dd>
+        {% endif %}
+        {% if foodbank.delivery_phone_number %}
+          <dt>Delivery phone</dt>
+          <dd><a href="call:{{ foodbank.delivery_phone_number }}">{{ foodbank.delivery_phone_number }}</a></dd>
+        {% endif %}
+        {% if foodbank.foodbank_group %}
+          <dt>Foodbank Group</dt>
+          <dd>{{ foodbank.foodbank_group.name }}</dd>
+        {% endif %}
+      </dl>
+
+      <h3>Politics</h3>
+      <dl>
+        <dt>Parl. Con.</dt>
+        <dd>{{ foodbank.parliamentary_constituency }}</dd>
+        {% if foodbank.county %}
+          <dt>County</dt>
+          <dd>{{ foodbank.county }}</dd>
+        {% endif %}
+        {% if foodbank.district %}
+          <dt>District</dt>
+          <dd>{{ foodbank.district }}</dd>
+        {% endif %}
+        {% if foodbank.ward %}
+          <dt>Ward</dt>
+          <dd>{{ foodbank.ward }}</dd>
+        {% endif %}
+        <dt>Country</dt>
+        <dd>{{ foodbank.country }}</dd>
+      </dl>
+
+      <h3>Stats</h3>
+      <dl>
+        <dt>Subscribers</dt>
+        <dd>{{ foodbank.number_subscribers }}</dd>
+        <dt>Days Between Needs</dt>
+        <dd>{{ foodbank.days_between_needs }}</dd>
+        <dt>Orders</dt>
+        <dd>{{ foodbank.no_orders }}</dd>
+        <dt>Total weight</dt>
+        <dd>{{ foodbank.total_weight_kg|intcomma }} kg</dd>
+        <dt>Total weight (pkging)</dt>
+        <dd>{{ foodbank.total_weight_kg_pkg|intcomma }} kg</dd>
+        <dt>Total items</dt>
+        <dd>{{ foodbank.total_items|intcomma }}</dd>
+        <dt>Total cost</dt>
+        <dd>£{{ foodbank.total_cost|intcomma }}</dd>
+        <dt>Locations</dt>
+        <dd>{{ foodbank.no_locations }}</dd>
+        <dt>Donation Points</dt>
+        <dd>{{ foodbank.no_donation_points }}</dd>
+      </dl>
+
+      <h3>Dates</h3>
+      <dl>
+        <dt>Created</dt>
+        <dd>{{ foodbank.created }}</dd>
+        <dt>Modified</dt>
+        <dd>{{ foodbank.modified }}</dd>
+        <dt>Edited</dt>
+        <dd>{{ foodbank.edited }}</dd>
+        <dt>Last Need</dt>
+        <dd>{{ foodbank.last_need }}</dd>
+        <dt>Last RFI</dt>
+        <dd>{{ foodbank.last_rfi }}</dd>
+        <dt>Last Discrepancy Check</dt>
+        <dd>{{ foodbank.last_discrepancy_check }}</dd>
+        {% if foodbank.rss_url %}
+          <dt>Last Crawl</dt>
+          <dd>
+            {{ foodbank.last_crawl }}
+            <form action="{% url 'admin:foodbank_crawl' foodbank.slug %}" method="post">
+              <input type="submit" value="Force Crawl" class="button is-info is-small">
+            </form>
+          </dd>
+        {% endif %}
+      </dl>
+
+      <h3>⚠️ Danger Zone</h3>
+      <form action="{% url 'admin:foodbank_rfi' foodbank.slug %}" method="post">
+        <input type="submit" class="button is-danger" value="Send RFI" onclick="return confirm('Send RFI to {{ foodbank.name}}?')">
+        {% csrf_token %}
+      </form>
+
+      <h3>⚠️ Really Dangerous Zone</h3>
+      <form action="{% url 'admin:foodbank_delete' foodbank.slug %}" method="post">
+        <input type="submit" class="button is-danger" value="Delete {{ foodbank.full_name }}" onclick="return confirm('DELETE {{ foodbank.name}}?')">
+        {% csrf_token %}
+      </form>
+
+    </div>
+
+    {# Locations #}
+    <div class="column generallocations">
+      <a href="{% url 'admin:fblocation_new' foodbank.slug %}" class="button is-link">New Location</a>
+      <h3>Locations</h3>
+      <table class="table is-fullwidth locationtable">
+        <tr>
+          <td>
+            Main
+          </td>
+          <td>
+            {{ foodbank.address|linebreaksbr }}<br>{{ foodbank.postcode }}
+            <dl class="is-size-7">
+              <dt>Lat Lng</dt>
+              <dd><a href="https://www.google.co.uk/maps/?q={{ foodbank.latt_long }}">{{ foodbank.latt_long }}</a></dd>
+              <dt>Place ID</dt>
+              <dd>{% if foodbank.place_id %}{{ foodbank.place_id|truncatechars:25 }}{% else %}None{% endif %}</dd>
+              {% if foodbank.address_is_administrative %}
+                <dt>Just administrative location</dt>
+                <dd>✅ Yes</dd>
+              {% endif %}
+            </dl>
+          </td>
+          <td><a href="{% url 'admin:foodbank_edit' foodbank.slug %}" class="button is-link is-small is-pulled-right is-light">Edit</a></td>
+        </tr>
+        {% if foodbank.delivery_address %}
+          <tr>
+            <td>
+              Delivery
+            </td>
+            <td>
+              {{ foodbank.delivery_address|linebreaksbr }}
+              <dl class="is-size-7">
+                <dt>Lat Lng</dt>
+                <dd><a href="https://www.google.co.uk/maps/?q={{ foodbank.delivery_latt_long }}">{{ foodbank.delivery_latt_long }}</a></dd>
+              </dl>
+            </td>
+            <td><a href="{% url 'admin:foodbank_edit' foodbank.slug %}#id_delivery_address" class="button is-link is-small is-pulled-right">Edit</a></td>
+          </tr>
+        {% endif %}
+        {% for location in foodbank.locations %}
+        <tr>
+          <td>{{ location.name }}</td>
+          <td>
+            {{ location.address|linebreaksbr }}<br>{{ location.postcode }}
+            <dl class="is-size-7">
+              {% if location.phone_number %}
+                <dt>Phone</dt>
+                <dd>{{ location.phone_number }}</dd>
+              {% endif %}
+              {% if location.email %}
+                <dt>Email</dt>
+                <dd>{{ location.email }}</dd>
+              {% endif %}
+              <dt>Lat Lng</dt>
+              <dd><a href="https://www.google.co.uk/maps/?q={{ location.latt_long }}">{{ location.latt_long }}</a></dd>
+              <dt>Place ID</dt>
+              <dd>{% if location.place_id %}{{ location.place_id|truncatechars:25 }}{% else %}None{% endif %}</dd>
+              {% if location.place_has_photo %}
+                <dt>Place ID has photo</dt>
+                <dd>✅ Yes</dd>
+              {% endif %}
+              {% if location.is_donation_point %}
+                <dt>Donation Point</dt>
+                <dd>✅ Yes</dd>
+              {% endif %}
+            </dl>
+          </td>
+          <td>
+            <a href="{% url 'admin:fblocation_edit' foodbank.slug location.slug %}" class="button is-link is-small is-pulled-right is-light">Edit</a>
+            <form action="{% url 'admin:fblocation_delete' foodbank.slug location.slug %}" method="post">
+              <input type="submit" class="button is-small is-danger is-pulled-right is-light" value="Delete" onclick="return confirm('Delete {{ location.name}}?')">
+              {% csrf_token %}
+            </form>
+          </td>
+        {% endfor %}
+      </table>
+    </div>
+
+    {# Donation Points #}
+    <div class="column donationpoints is-hidden">
+      <a href="{% url 'admin:donationpoint_new' foodbank.slug %}" class="button is-link">New Donation Point</a>
+      {% if foodbank.donation_points %}
+        <table class="table is-fullwidth is-hoverable">
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Postcode</th>
+            <th>Lat Lng</th>
+            <th>Place ID</th>
+            <th>Company</th>
+            <th>Has Open Hrs</th>
+            <th>In Store Only?</th>
+            <th></th>
+          </tr>
+          {% for donation_point in foodbank.donation_points %}
+            <tr>
+              <td>{{ donation_point.name }}</td>
+              <td>{{ donation_point.address|linebreaksbr }}</td>
+              <td>{{ donation_point.postcode }}</td>
+              <td>{{ donation_point.latt_long }}</td>
+              <td>{% if donation_point.place_id %}{{ donation_point.place_id|truncatechars:25 }}{% else %}None{% endif %}</td>
+              <td>
+                {% if donation_point.company %}
+                  <img src="/static/img/co/{{ donation_point.company|slugify }}.png" alt="{{ donation_point.company }}" class="companyicon">
+                  {{ donation_point.company }}
+                {% endif %}
+              </td>
+              <td>{% if donation_point.opening_hours %}Y{% endif %}</td>
+              <td>{% if donation_point.in_store_only %}Y{% endif %}</td>
+              <td>
+                <a href="{% url 'admin:donationpoint_edit' foodbank.slug donation_point.slug %}" class="button is-small is-link is-light">Edit</a>
+                <form action="{% url 'admin:donationpoint_delete' foodbank.slug donation_point.slug %}" method="post">
+                  <input type="submit" class="button is-small is-danger is-light" value="Delete" onclick="return confirm('Delete {{ donation_point.name}}?')">
+                  {% csrf_token %}
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      {% else %}
+        <p style="margin-top:20px;">No donation points yet</p>
+      {% endif %}
+    </div>
+
+    {# Needs #}
+    {% if foodbank.needs %}
+      <div class="column needsorders is-hidden">
+        <a href="{% url 'admin:newneed' %}?foodbank={{ foodbank.slug }}" class="button is-link">New Need</a>
+        <table class="table is-fullwidth is-hoverable">
+          <tr>
+            <th>Published?</th>
+            <th>Input</th>
+            <th>ID</th>
+            <th>Need</th>
+            <th>Excess</th>
+            <th>Created</th>
+            <th>Modified</th>
+          </tr>
+          {% for need in foodbank.needs %}
+            <tr>
+              <td>
+                {% if need.published %}
+                  <span style="color:green">✓</span>
+                {% else %}
+                  <span style="color:red">x</span>
+                {% endif %}
+              </td>
+              <td>
+                {{ need.input_method_emoji }}
+              </td>
+              <td>
+                <a href="{% url 'admin:need' need.need_id %}">{{ need.need_id }}</a>
+              </td>
+              <td class="is-size-7">{{ need.change_text|linebreaksbr }}</td>
+              <td class="is-size-7">{{ need.excess_change_text|linebreaksbr }}</td>
+              <td>{{ need.created }}</td>
+              <td>{{ need.modified }}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+
+    {# Orders #}
+    {% if foodbank.orders %}
+      <div class="column needsorders is-hidden">
+        <a href="{% url 'admin:neworder' %}?foodbank={{ foodbank.slug }}" class="button is-link">New Order</a>
+        <table class="table is-fullwidth is-hoverable">
+          <tr>
+            <th></th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Cost</th>
+            <th></th>
+          </tr>
+          {% for order in foodbank.orders %}
+            <tr>
+              <td class="delivery-provider-icon">{% if order.delivery_provider %}<img src="/static/img/delivery_provider/icon/{{ order.delivery_provider|slugify }}.png" width="12">{% endif %}</td>
+              <td><a href="{% url 'admin:order' order.order_id %}">{{ order.delivery_datetime|date:"D" }}, {{ order.delivery_datetime }}</a></td>
+              <td>{{ order.no_items }}</td>
+              <td>£{{ order.natural_cost }}</td>
+              <td>{% if order.notification_email_sent %}✉️{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+
+    {# Articles #}
+    {% if foodbank.articles %}
+      <div class="column articles is-hidden">
+        <table class="table is-fullwidth is-hoverable">
+          {% for article in foodbank.articles %}
+            <tr>
+              <td>
+                <a href="{{ article.url }}">{{ article.title_captialised }}</a>
+              </td>
+              <td>
+                <span">{{ article.published_date|timesince }} ago</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+
+    {# Social Media #}
+    {% if foodbank.facebook_page %}
+      <div class="column socialmedia is-hidden">
+        {% include 'wfbn/includes/facebook_embed.html' with page_name=foodbank.facebook_page %}
+      </div>
+    {% endif %}
+
+    {% if foodbank.twitter_handle %}
+      <div class="column socialmedia is-hidden">
+        <div class="twitter-feed">
+          <a class="twitter-timeline" href="https://twitter.com/{{ foodbank.twitter_handle }}">Tweets by {{ foodbank.twitter_handle }}</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+        </div>
+      </div>
+    {% endif %}
+
+    {# Subscribers #}
+    <div class="column subscribers is-hidden">
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Email</th>
+          <th>Created</th>
+          <th>Confirmed</th>
+        </tr>
+        {% for subscription in foodbank.subscribers %}
+          <tr>
+            <td>{{ subscription.email }}</td>
+            <td>{{ subscription.created }}</td>
+            <td>{% if subscription.confirmed %}Y{% else %}N{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+  </div>
+
+{% endblock %}
+
+
+{% block script %}
+  <script src="/static/js/tabber.js" defer></script>
+{% endblock %}

@@ -1,0 +1,192 @@
+{% extends "public/page.html" %}
+{% load humanize %}
+
+{% block title %}Give Food{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="/static/css/hp.css">
+  <meta name="description" content="Give Food a UK charity uses data to highlight local and structural food insecurity then provides tools to help alleviate it.">
+  <link rel="alternate" type="application/rss+xml" title="Give Food RSS" href="{% url 'wfbn:rss' %}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@GiveFoodCharity">
+  <meta property="og:title" content="Give Food">
+  <meta property="og:description" content="We're a UK charity that uses data to highlight local and structural food insecurity then provides tools to help alleviate it">
+  <meta property="og:image" content="https://www.givefood.org.uk/static/img/map.png">
+  <meta property="og:image:alt" content="Map of UK food banks">
+{% endblock %}
+
+{% block body %}
+
+  </div>
+  <div class="container map">
+
+  <div class="columns is-desktop is-centered">
+    <div class="column is-two-thirds">
+      <h1><img src="/static/img/logo.svg" alt="Give Food"></h1>
+    </div>
+  </div>
+
+  <div class="columns is-desktop is-centered">
+
+    <div class="column is-one-third">
+      <p>We're a UK charity that uses data to highlight local and structural food insecurity then provides tools to help alleviate it.</p>
+
+      <div class="find-foodbank">
+        <p>Find out if there is a <a href="{% url 'wfbn:index' %}">food bank nearby</a> that you can help...</p>
+        <a id="usemylocationbtn" href="{% url 'wfbn:get_location' %}" class="button is-light is-info" data-is-homepage="true">Use my location</a>
+        <form id="addressform" action="{% url 'wfbn:index' %}" method="GET" data-is-homepage="true">
+          <label id="address_label" for="address_field" class="label">Postcode or town</label>
+          <input id="address_field" type="text" name="address" class="input" placeholder="e.g. EX4 6PX or Sheffield" required>
+          <input id="lat_lng_field" type="hidden" name="lat_lng">
+          <input type="submit" class="button is-light is-info" value="Go">
+        </form>
+      </div>
+
+      <nav class="primary">
+        <ul>
+          {% if enable_write %}
+            <li><a href="{% url 'write:index' %}">Write to your MP</a></li>
+          {% endif %}
+          <li><a href="{% url 'donate' %}">Donate</a></li>
+          <li><a href="{% url 'about_us' %}">About us</a></li>
+        </ul>
+      </nav>
+      
+    </div>
+
+    <div class="column is-one-third"></div>
+
+  </div>
+
+</div>
+
+<div class="logos-container">
+  <div class="container">
+    <div class="columns">
+      <div class="column">
+        <h2>We've worked with</h2>
+      </div>
+    </div>
+
+    <div class="columns logos">
+      {% for logo in logos %}
+        <div class="column">
+          <a href="{{ logo.url }}">
+            <img src="/static/img/hplogos/{{ logo.slug }}.{{ logo.format }}" class="{{ logo.slug }}" alt="{{ logo.name }}" loading="lazy">
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="container how-help-container">
+
+  <div class="columns">
+    <div class="column how-help">
+      <h2>How we can help</h2>
+    </div>
+  </div>
+
+  <div class="columns how-help-cat">
+    <div class="column">
+      <h3>Public</h3>
+      <p><a href="{% url 'wfbn:index' %}">Use our tool</a> to find your local food banks, then donate, volunteer or take political action.</p>
+    </div>
+    <div class="column">
+      <h3>Food banks</h3>
+      <p><a href="{% url 'register_foodbank' %}">Register a food bank</a> to be included in our database and allow users to find you and what you need.</p>
+    </div>
+    <div class="column">
+      <h3>Media</h3>
+      <p>Journalists, particularly data journalists, can use our data for stories around food poverty. See our <a href="/api/">API</a>, or get in touch.</p>
+    </div>
+    <div class="column">
+      <h3>Researchers &amp; students</h3>
+      <p>We can provide our data in bulk, plus advice on how to interpret it, for academic or governmental research. Have a look at our <a href="/api/">API</a>, or email us.</p>
+    </div>
+  </div>
+
+  <div class="columns">
+    <div class="column">
+      <h2>Real time statistics</h2>
+    </div>
+  </div>
+
+  <div class="columns stats">
+      <div class="column">
+        <h3>🏢&ensp;Food bank organisations</h3>
+        <p>{{ stats.organisations|intcomma }}</p>
+      </div>
+      <div class="column">
+        <h3>📍&ensp;Food bank locations</h3>
+        <p>{{ stats.locations|intcomma }}</p>
+      </div>
+      <div class="column">
+        <h3>🛒&ensp;Donation points</h3>
+        <p>{{ stats.donationpoints|intcomma }}</p>
+      </div>
+      <div class="column">
+        <h3>🥫&ensp;Items requested</h3>
+        <p>{{ stats.items|intcomma }}</p>
+      </div>
+      <div class="column">
+        <h3>🥣&ensp;Meals delivered</h3>
+        <p>{{ stats.meals|intcomma }}</p>
+      </div>
+      <div class="column">
+        <h3>📅&ensp;Data last updated</h3>
+        <p data-include="{% url 'frag' 'last_updated' %}"></p>
+      </div>
+  </div>
+
+</div>
+
+<div class="container">
+
+  <div class="columns is-centered">
+    <div class="column is-three-quarters">
+      <p class="annualreportteaser">
+        Read our <a href="{% url 'annual_report' 2023 %}">2023 annual report</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="columns is-centered">
+
+      <div class="column is-one-quarter">
+
+        <nav class="secondary">
+          <ul>
+            <li><a href="{% url 'register_foodbank' %}">Register a food bank</a></li>
+            <li><a href="{% url 'dash:index' %}">Dashboards</a></li>
+            <li><a href="/api/">API</a></li>
+            <li><a href="{% url 'annual_report_index' %}">Annual reports</a></li>
+          </ul>
+        </nav>
+
+        <h3>Email</h3>
+        <p>
+          <a href="mailto:mail@givefood.org.uk" class="is-size-5">mail@givefood.org.uk</a>
+        </p>        
+      </div>
+
+      <div class="column is-one-quarter">
+        <a class="twitter-timeline" data-lang="en" data-height="800" href="https://twitter.com/GiveFoodCharity?ref_src=twsrc%5Etfw">Tweets by GiveFoodCharity</a> <script async src="https://platform.twitter.com/widgets.js"></script>
+      </div>
+
+      <div class="column is-one-quarter">
+        {% include 'wfbn/includes/facebook_embed.html' with page_name='GiveFoodOrgUK' %}
+      </div>
+  </div>
+
+
+{% endblock %}
+
+
+{% block script %}
+
+  <script src="/static/js/wfbn.js?v={{ version }}" defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key={{ gmap_key }}&libraries=places"></script>
+
+{% endblock %}

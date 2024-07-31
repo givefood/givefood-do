@@ -1,0 +1,95 @@
+{% extends "public/page.html" %}
+{% load bulma_tags %}
+
+{% block head %}
+  <link rel="stylesheet" href="/static/css/wfbn.css?v={{ version }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@GiveFoodCharity">
+  <meta property="og:title" content="Write to {{ constituency.mp }}">
+  <meta name="description" content="Ask {{ constituency.mp }} what they are doing about food banks in {{ constituency }}">
+  <meta property="og:image" content="{{ constituency.mp_photo_url }}">
+  <meta property="og:image:alt" content="{{ constituency.mp }}">
+{% endblock %}
+
+{% block title %}Write to {{ constituency.mp }} about food banks - Give Food{% endblock %}
+
+{% block body %}
+
+  <div class="columns">
+    <div class="column">
+
+      <div class="columns">
+
+        <div class="column is-4">
+          <a href="{% url 'index' %}" class="logo"><img src="/static/img/logo.svg" alt="Give Food"></a>
+        </div>
+
+      </div>
+
+      <nav class="breadcrumb has-arrow-separator" aria-label="breadcrumbs">
+            <ul>
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li><a href="{% url 'write:index' %}">Write to your MP</a></li>
+                <li><a href="{% url 'write:constituency' constituency.slug %}">{{ constituency }}</a></li>
+            </ul>
+      </nav>
+
+      <h1>{{ constituency }}</h1>
+
+      <div class="columns">
+
+          <div class="column is-4">
+
+            {% if postcode %}
+                <p>Your postcode {{ postcode|upper }} is in <a href="{% url 'wfbn:constituency' constituency.slug %}">{{ constituency }}</a> constituency, and your MP is {{ constituency.mp }}.</p>
+            {% else %}
+                <p>The MP for <a href="{% url 'wfbn:constituency' constituency.slug %}">{{ constituency }}</a> is {{ constituency.mp }}.</p>
+            {% endif %}
+
+            <img src="{{ constituency.mp_photo_url }}" alt="{{ constituency.mp }}" class="mp_photo">
+
+            <div id="map" class="sidemap"></div>
+            {% include "wfbn/foodbank/includes/maplegend.html" %}
+
+          </div>
+
+          <div class="column is-6">
+            
+            {% if constituency.email %}
+
+              <p>To write to {{ constituency.mp }} we'll need a few more details. You'll then be able to view the email before we send it for you.</p>
+
+              <form method="post" action="{% url 'write:email' constituency.slug %}">
+                {{ form|bulma }}
+                <input type="submit" class="button is-link" value="Continue">
+                {% csrf_token %}
+              </form>
+
+            {% else %}
+
+              <p>Sorry, we don't have an email address for {{ constituency.mp }}, so this service is unavailable in your area.</p>
+
+            {% endif %}
+
+          </div>
+      </div>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+  var gf_map_config = {
+    geojson: "{% url 'wfbn:constituency_geojson' constituency.slug %}",
+    max_zoom: 14,
+  }
+</script>
+
+<script src="/static/js/wfbn.js?v={{ version }}" defer></script>
+<script src="/static/js/wfbn_map.js?v={{ version }}" defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ gmap_key }}&libraries=places"></script>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "admin/page.html" %}
+{% load humanize %}
+
+{% block title %}Politics - GF Admin{% endblock %}
+
+{% block body %}
+
+  <h2>Parliamentary Constituencies</h2>
+
+  <div class="columns">
+
+    <div class="column">
+
+      <a href="{% url 'admin:parlcon_form' %}" class="button is-link">New ParlCon</a>
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Name</th>
+          <th>Country</th>
+          <th>MP</th>
+          <th>MP Party</th>
+          <th>MP Parliament ID</th>
+          <th>MP Photo</th>
+          <th>Email</th>
+          <th>GeoJSON?</th>
+          <th></th>
+        </tr>
+        {% for parlcon in parlcons %}
+          <tr>
+            <td>{{ parlcon.name }}</td>
+            <td>{{ parlcon.country }}</td>
+            <td>{{ parlcon.mp }}</td>
+            <td>{{ parlcon.mp_party }}</td>
+            <td>{{ parlcon.mp_parl_id }}</td>
+            <td>
+              <img src="{{ parlcon.mp_photo_url }}" alt="{{ parlcon.mp }}" width="50" loading="lazy">
+            </td>
+            <td>{{ parlcon.email }}</td>
+            <td>{% if parlcon.boundary_geojson %}🗺️{% endif %}</td>
+            <td>
+              <a href="{% url 'admin:parlcon_form' parlcon.slug %}" class="button is-small">Edit</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+  </div>
+
+{% endblock %}

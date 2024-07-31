@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+{% include 'public/includes/debugcomment.html' %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="/static/css/bulma.min.css?v={{ version }}">
+  <link rel="stylesheet" href="/static/css/gf.css?v={{ version }}">
+  <link rel="stylesheet" href="/static/css/admin.css?v={{ version }}">
+  <link rel="preload" href="/static/fonts/soehne-buch.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" href="/static/fonts/soehne-dreiviertelfett.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+  <meta name="theme-color" content="#F2DECB">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon.png">
+  <title>{% block title %}{% endblock %}</title>
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+    <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="{% url 'admin:index' %}">
+          <img src="/static/img/logo.svg" alt="Give Food" class="logo">
+        </a>
+      </div>
+      <div class="navbar-menu">
+        <a class="navbar-item{% if section == "foodbanks" %} is-active{% endif %}" href="{% url 'admin:foodbanks' %}">Food Banks</a>
+        <a class="navbar-item{% if section == "locations" %} is-active{% endif %}" href="{% url 'admin:locations' %}">Locations</a>
+        <a class="navbar-item{% if section == "donationpoints" %} is-active{% endif %}" href="{% url 'admin:donationpoints' %}">Donation Points</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link{% if section == "needs" %} is-active{% endif %}" href="{% url 'admin:needs' %}" >Needs</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="{% url 'admin:needs' %}?uncategorised=true">Uncategorised</a>
+            <a class="navbar-item" href="{% url 'admin:needs_otherlines' %}">Other Lines</a>
+          </div>
+        </div>
+        <a class="navbar-item{% if section == "orders" %} is-active{% endif %}" href="{% url 'admin:orders' %}">Orders</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link{% if section == "finder" %} is-active{% endif %}" href="{% url 'admin:finder' %}" data-turbo="false">Finder</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="{% url 'admin:finder_trusselltrust' %}">Trussell Trust</a>
+          </div>
+        </div>
+        <a class="navbar-item{% if section == "settings" %} is-active{% endif %}" href="{% url 'admin:settings' %}">Settings</a>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <form action="{% url 'admin:search_results' %}" method="get">
+            <input name="q" class="input" type="text" placeholder="Search everything...">
+          </form>
+        </div>
+      </div>
+
+    </nav>
+    <div class="main">
+      {% block body %}{% endblock %}
+    </div>
+    <footer class="footer">
+      v{{ version }}
+    </footer>
+
+    <script>
+      const gmap_key = "{{ gmap_key }}";
+      const gmap_static_key = "{{ gmap_static_key }}";
+      const gmap_geocode_key = "{{ gmap_geocode_key }}";
+      const gmap_places_key = "{{ gmap_places_key }}";
+    </script>
+
+    {% block script %}{% endblock %}
+
+    <script src="/static/js/admin.js?v={{ version }}" defer></script>
+
+</body>
+</html>

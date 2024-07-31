@@ -1,0 +1,102 @@
+{% extends "admin/page.html" %}
+{% load humanize %}
+
+{% block title %}Give Food Admin{% endblock %}
+
+{% block body %}
+
+  <div class="columns">
+
+    <div class="column">
+
+      <h2>Needs</h2>
+
+      {% if unpublished_needs %}
+        <form action="{% url 'admin:needs_deleteall' %}" method="post">
+          {% for need in unpublished_needs %}
+            <input type="hidden" name="need" value="{{ need.id }}">
+          {% endfor %}
+          <input type="submit" value="Delete All" class="button is-small is-pulled-right" onclick="return confirm('Are you sure you want to DELETE ALL unpublished needs?')">
+        </form>
+      {% endif %}
+
+      <h3>Unpublished</h3>
+      {% include "admin/includes/needtable.html" with needs=unpublished_needs %}
+
+      <h3>Published</h3>
+      {% include "admin/includes/needtable.html" with needs=published_needs %}
+
+    </div>
+
+    <div class="column">
+
+      <h2>Discrepancies</h2>
+
+      <table class="table is-fullwidth is-hoverable">
+        <tr>
+          <th>Time</th>
+          <th>Foodbank</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+        {% for discrepancy in discrepancies %}
+          <tr>
+            <td><a href="{% url 'admin:discrepancy' discrepancy.id %}">{{ discrepancy.created|timesince }}</a></td>
+            <td><a href="{% url "admin:foodbank" discrepancy.foodbank_slug %}">{{ discrepancy.foodbank_name }}</a></td>
+            <td><a href="{{ discrepancy.url }}" target="_blank">🔗</a></td>
+            <td class="is-size-7">{{ discrepancy.discrepancy_text }}</td>
+            <td>
+              <form action="{% url 'admin:discrepancy_action' discrepancy.id %}" method="post">
+                <input type="hidden" name="action" value="done">
+                <input type="submit" value="✓" class="button is-small is-success is-light">
+              </form>
+              <form action="{% url 'admin:discrepancy_action' discrepancy.id %}" method="post">
+                <input type="hidden" name="action" value="invalid">
+                <input type="submit" value="✗" class="button is-small is-danger is-light">
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+    <div class="column">
+
+      <h2>Stats</h2>
+
+      <dl>
+        <dt>Oldest Edit</dt>
+        <dd>
+          {{ oldest_edit.edited|timesince }} ago
+          <br><span class="is-size-7">{{ oldest_edit.edited }}</span>
+        </dd>
+        <dt>Latest Edit</dt>
+        <dd>
+          {{ latest_edit.edited|timesince }} ago
+          <br><span class="is-size-7">{{ latest_edit.edited }} </span>
+        </dd>
+        <dt>24hr Subs</dt>
+        <dd>{{ sub_count_24 }}</dd>
+        <dt>24hr Need Lines</dt>
+        <dd>{{ need_count_24 }}</dd>
+      </dl>
+
+
+      <h2>Articles</h2>
+      <table class="table is-narrow is-fullwidth">
+        {% for article in articles %}
+            <tr>
+                <td><a href="{% url 'admin:foodbank' article.foodbank_name_slug %}">{{ article.foodbank_name }}</a></td>
+                <td><a href="{{ article.url_with_ref }}">{{ article.title_captialised|truncatewords:10 }}</a></td>
+                <td>{{ article.published_date }}</td>
+            </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+
+  </div>
+
+{% endblock %}
